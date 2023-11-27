@@ -1,5 +1,3 @@
-#define IMPLOT_DISABLE_OBSOLETE_WARNINGS
-#define IMPLOT_DISABLE_DEPRECATED_WARNINGS
 #include "pch.h"
 #include "PlotWindow.h"
 #include "UtillWindow.h"
