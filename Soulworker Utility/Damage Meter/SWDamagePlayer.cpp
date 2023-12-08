@@ -236,6 +236,26 @@ vector<SWDamageMonster*>::const_iterator SWDamagePlayer::GetMonsterInfo(UINT id)
 	return itr;
 }
 
+DOUBLE SWDamagePlayer::GetHistoryAtkCDmgTime()
+{
+	return _historyAtkCDmgTime;
+}
+
+VOID SWDamagePlayer::SetHistoryAtkCDmgTime(DOUBLE historyAtkCDmgTime)
+{
+	_historyAtkCDmgTime = historyAtkCDmgTime;
+}
+
+VOID SWDamagePlayer::SetHistoryAvgAtkCDmg(DOUBLE historyAvgAtkCDmg)
+{
+	_historyAvgAtkCDmg = historyAvgAtkCDmg;
+}
+
+DOUBLE SWDamagePlayer::GetHistoryAvgAtkCDmg()
+{
+	return _historyAvgAtkCDmg;
+}
+
 DOUBLE SWDamagePlayer::GetHistoryABTime()
 {
 	return _historyABTime;

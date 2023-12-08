@@ -260,7 +260,7 @@ VOID PlayerTable::SetupTable() {
 	ImGuiTableFlags tableFlags = ImGuiTableFlags_None;
 	tableFlags |= (ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Resizable);
 
-	const int columnSize = 47;
+	const int columnSize = 48;
 	if (ImGui::BeginTable("###Player Table", columnSize, tableFlags)) {
 
 		ImGuiTableColumnFlags columnFlags = ImGuiTableColumnFlags_None;
@@ -315,6 +315,7 @@ VOID PlayerTable::SetupTable() {
 		ImGui::TableSetupColumn(LANGMANAGER.GetText("STR_TABLE_FULL_AS_TIME"), columnFlags | ImGuiTableColumnFlags_WidthFixed, -1);
 		ImGui::TableSetupColumn(LANGMANAGER.GetText("STR_TABLE_FULL_AS_PERCENT"), columnFlags | ImGuiTableColumnFlags_WidthFixed, -1);
 		ImGui::TableSetupColumn(LANGMANAGER.GetText("STR_TABLE_AVG_AS_PERCENT"), columnFlags | ImGuiTableColumnFlags_WidthFixed, -1);
+		ImGui::TableSetupColumn(LANGMANAGER.GetText("STR_TABLE_AVERAGE_ATKCDMG_SUM"), columnFlags | ImGuiTableColumnFlags_WidthFixed, -1);
 		//ImGuiTableColumnFlags_WidthStretch
 
 		ImGui::TableHeadersRow();
@@ -552,16 +553,16 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		else {
 			// Attack+Crit SUM
 			DOUBLE gongchihap = (DOUBLE)playerMetaData->GetStat(StatType::MaxAttack) + (DOUBLE)playerMetaData->GetStat(StatType::CritDamage);
-			if (UIOPTION.is1K())
-				gongchihap /= 1000;
-			else if (UIOPTION.is1M())
-				gongchihap /= 1000000;
+			//if (UIOPTION.is1K())
+			//	gongchihap /= 1000;
+			//else if (UIOPTION.is1M())
+			//	gongchihap /= 1000000;
 			sprintf_s(label, 128, "%.0f", gongchihap);
 			TextCommma(label, comma);
-			if (UIOPTION.is1K())
-				strcat_s(comma, 128, "K");
-			else if (UIOPTION.is1M())
-				strcat_s(comma, 128, "M");
+			//if (UIOPTION.is1K())
+			//	strcat_s(comma, 128, "K");
+			//else if (UIOPTION.is1M())
+			//	strcat_s(comma, 128, "M");
 			ImGui::Text(comma);
 			ImGui::TableNextColumn();
 
@@ -642,7 +643,7 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		ImGui::Text(label);
 		ImGui::TableNextColumn();
 
-		// history data tmp
+		// Average Armor Break
 		static DOUBLE savedResultAB = 0;
 
 		if (DAMAGEMETER.GetPlayerName((*itr)->GetID()) != LANGMANAGER.GetText("STR_TABLE_YOU") || _tableTime == 0) {
@@ -671,7 +672,7 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		ImGui::Text(label);
 		ImGui::TableNextColumn();
 
-		// BD
+		// Average BD
 		static DOUBLE savedResultBD = 0;
 
 		if (DAMAGEMETER.GetPlayerName((*itr)->GetID()) != LANGMANAGER.GetText("STR_TABLE_YOU") || _tableTime == 0) {
@@ -856,7 +857,7 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 
 		//
 
-		// Evade A
+		// Evade A ( Include zero damage percentage. )
 		if ((*itr)->GetGetHitAll() == 0) {
 			sprintf_s(label, 128, "-");
 		}
@@ -866,7 +867,7 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		ImGui::Text(label);
 		ImGui::TableNextColumn();
 
-		// Evade B
+		// Evade B ( Missed dmg percentage.)
 		if ((*itr)->GetGetHit() == 0) {
 			sprintf_s(label, 128, "-");
 		}
@@ -1037,7 +1038,7 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		ImGui::Text(label);
 		ImGui::TableNextColumn();
 
-		// AS
+		// Average AS
 		static DOUBLE savedResultAS = 0;
 		if (DAMAGEMETER.GetPlayerName((*itr)->GetID()) != LANGMANAGER.GetText("STR_TABLE_YOU") || _tableTime == 0) {
 			sprintf_s(label, 128, "-");
@@ -1062,6 +1063,36 @@ VOID PlayerTable::UpdateTable(FLOAT windowWidth) {
 		}
 		ImGui::Text(label);
 		ImGui::TableNextColumn();
+
+		// Average Atk+Cdmg
+		{
+			static DOUBLE savedResultAtkCdmg = 0;
+
+			if (DAMAGEMETER.GetPlayerName((*itr)->GetID()) != LANGMANAGER.GetText("STR_TABLE_YOU") || _tableTime == 0) {
+				sprintf_s(label, 128, "-");
+			}
+			else if (DAMAGEMETER.isHistoryMode()) {
+				savedResultAtkCdmg = (*itr)->GetHistoryAvgAtkCDmg();
+				sprintf_s(label, 128, "%.0f", savedResultAtkCdmg);
+			}
+			else {
+				if ((INT64)(milliTableTime - playerMetaData->_avgAtkCdmgPreviousTime) < 0) {
+					sprintf_s(label, 128, "%.0f", savedResultAtkCdmg);
+				}
+				else {
+					UINT64 timeDifference = (milliTableTime - playerMetaData->_avgAtkCdmgPreviousTime);
+					DOUBLE currentAtkCdmg = playerMetaData->GetStat(StatType::MaxAttack) + playerMetaData->GetStat(StatType::CritDamage);
+					UINT64 calculatedAvgAtkCdmg = static_cast<UINT64>((playerMetaData->_avgAtkCdmgSum + timeDifference * currentAtkCdmg));
+
+					savedResultAtkCdmg = (DOUBLE)calculatedAvgAtkCdmg / milliTableTime;
+					sprintf_s(label, 128, "%.0f", savedResultAtkCdmg);
+				}
+			}
+
+			TextCommma(label, comma);
+			ImGui::Text(comma);
+			ImGui::TableNextColumn();
+		}
 
 		//  (etc)
 		PLOTWINDOW.AddJqData((*itr)->GetJqStack(), _tableTime);

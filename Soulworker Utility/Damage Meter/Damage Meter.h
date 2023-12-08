@@ -114,6 +114,29 @@ static vector<UINT32> _dwSkills({
 
 	});
 
+inline void WriteStringToFile(const std::wstring& wszLog)
+{
+	std::wofstream fileOut;
+	fileOut.imbue(std::locale(fileOut.getloc(), new std::codecvt_utf8<wchar_t>));
+
+	fileOut.open(L"log.txt", std::ios::app);
+
+	if (!fileOut.is_open()) {
+		::OutputDebugStringA("Error. fileOut.is_open() return false.");
+		return;
+	}
+
+	fileOut << wszLog;
+	fileOut.close();
+}
+// WriteStringToFile example.
+//{
+//	wchar_t wszLog[2048];
+//	swprintf_s(wszLog, L"id: %u, totalDMG: %llu, soulstoneDMG: %llu, damageType: %u, maxCombo: %hu, monsterID: %u, skillID: %u\n",
+//		id, totalDMG, soulstoneDMG, damageType, maxCombo, monsterID, skillID);
+//	WriteStringToFile(wszLog);
+//}
+
 class SWDamageMeter : public Singleton<SWDamageMeter> {
 public: typedef struct _SW_PLAYER_METADATA {
 private:
@@ -132,6 +155,10 @@ public:
 	UINT32 _id = 0;
 	CHAR _name[MAX_NAME_LEN];
 	BYTE _job = 0;
+
+	UINT64 _avgAtkCdmgSum = 0;
+	UINT64 _avgAtkCdmgPreviousTime = 0;
+
 	UINT64 _avgABSum = 0;
 	UINT64 _avgABPreviousTime = 0;
 
@@ -181,6 +208,8 @@ public:
 	_SW_PLAYER_METADATA() {
 		_id = 0;
 		_job = 0;
+		_avgAtkCdmgSum = 0;
+		_avgAtkCdmgPreviousTime = 0;
 		_avgABSum = 0;
 		_avgABPreviousTime = 0;
 		_avgBDSum = 0;
@@ -258,12 +287,27 @@ public:
 			break;
 		case StatType::MinAttack:
 			_maxAttack = static_cast<FLOAT>(statValue * 1.25);
+			if (DAMAGEMETER.isRun()) {
+				UINT64 time = (UINT64)((DOUBLE)DAMAGEMETER.GetTime()); // timer time
+				_avgAtkCdmgSum += static_cast<UINT64>((time - _avgAtkCdmgPreviousTime) * (_maxAttack + _critDamage));
+				_avgAtkCdmgPreviousTime = time;
+			}
 			break;
 		case StatType::MaxAttack:
 			_maxAttack = statValue;
+			if (DAMAGEMETER.isRun()) {
+				UINT64 time = (UINT64)((DOUBLE)DAMAGEMETER.GetTime()); // timer time
+				_avgAtkCdmgSum += static_cast<UINT64>((time - _avgAtkCdmgPreviousTime) * (_maxAttack + _critDamage));
+				_avgAtkCdmgPreviousTime = time;
+			}
 			break;
 		case StatType::CritDamage:
 			_critDamage = statValue;
+			if (DAMAGEMETER.isRun()) {
+				UINT64 time = (UINT64)((DOUBLE)DAMAGEMETER.GetTime()); // timer time
+				_avgAtkCdmgSum += static_cast<UINT64>((time - _avgAtkCdmgPreviousTime) * (_maxAttack + _critDamage));
+				_avgAtkCdmgPreviousTime = time;
+			}
 			break;
 
 		default:
@@ -355,7 +399,6 @@ public:
 			(*player)->SetHistoryAggroTime(_AggroTime);
 
 			if (_id == DAMAGEMETER.GetMyID()) {
-
 				UINT64 avgTimeDifference = currentTime - _avgABPreviousTime;
 				DOUBLE currentAB = GetStat(StatType::ArmorBreak);
 				currentAB = currentAB > 100.0 ? 100.0 : currentAB; // 
@@ -371,6 +414,11 @@ public:
 				avgTimeDifference = currentTime - _avgASPreviousTime;
 				UINT64 calculatedAvgAS = static_cast<UINT64>((_avgASSum + avgTimeDifference * currentAS));
 				(*player)->SetHistoryAvgAS((DOUBLE)calculatedAvgAS / currentTime);
+
+				avgTimeDifference = currentTime - _avgAtkCdmgPreviousTime;
+				DOUBLE currentAtkCdmg = GetStat(StatType::MaxAttack) + GetStat(StatType::CritDamage);
+				UINT64 calculatedAvgAtkCdmg = static_cast<UINT64>((_avgAtkCdmgSum + avgTimeDifference * currentAtkCdmg));
+				(*player)->SetHistoryAvgAtkCDmg((DOUBLE)calculatedAvgAtkCdmg / currentTime);
 
 				if (_fullABStarted) {
 					_fullABStarted = false;
@@ -437,6 +485,9 @@ public:
 
 		_avgASSum = 0;
 		_avgASPreviousTime = 0;
+
+		_avgAtkCdmgSum = 0;
+		_avgAtkCdmgPreviousTime = 0;
 
 		_gear90EffectStarted = false;
 		_gear90Sum = 0;
@@ -803,7 +854,7 @@ private:
 	BOOL _testMode = FALSE;
 
 public:
-	SWDamageMeter() :   _myID(0), _worldID(0), _mazeEnd(0), _historyMode(0), _historyWorldID(0), _historyTime(0) {}
+	SWDamageMeter() : _myID(0), _worldID(0), _mazeEnd(0), _historyMode(0), _historyWorldID(0), _historyTime(0) {}
 	~SWDamageMeter();
 
 	VOID GetLock();

@@ -49,6 +49,7 @@ private:
 	USHORT _dodgeCounts = 0;
 	USHORT _deathCounts = 0;
 
+	DOUBLE _historyAvgAtkCDmg = 0.0;
 	DOUBLE _historyAvgAB = 0.0;
 	DOUBLE _historyAvgBD = 0.0;
 
@@ -60,6 +61,7 @@ private:
 	DOUBLE _historyLosedHP = 0.0;
 	BYTE _JqStack = 0;
 
+	DOUBLE _historyAtkCDmgTime = 0;
 	DOUBLE _historyABTime = 0;
 
 	DOUBLE _historyAggroTime = 0;
@@ -111,6 +113,12 @@ public:
 	USHORT GetSkillUsed();
 	USHORT GetDodgeUsed();
 	USHORT GetDeathCount();
+
+	DOUBLE GetHistoryAtkCDmgTime();
+	VOID SetHistoryAtkCDmgTime(DOUBLE historyAtkCDmgTime);
+
+	VOID SetHistoryAvgAtkCDmg(DOUBLE historyAvgAtkCDmg);
+	DOUBLE GetHistoryAvgAtkCDmg();
 
 	DOUBLE GetHistoryABTime();
 	VOID SetHistoryABTime(DOUBLE historyABTime);
