@@ -70,6 +70,7 @@
     "STR_TABLE_FULL_AS_PERCENT": "Full.AS(%)",
     "STR_TABLE_FULL_AS_TIME": "Full.AS(s)",
     "STR_TABLE_AVG_AS_PERCENT": "Avg.AS(%)",
+	"STR_TABLE_AVERAGE_ATKCDMG_SUM": "Avg.AtkCdmg",
 
     "STR_OPTION_WINDOWS_NAME": "Option",
     "STR_OPTION_FONTSCALE": "Font Scale",

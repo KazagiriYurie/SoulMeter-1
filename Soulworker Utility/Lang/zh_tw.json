@@ -70,6 +70,7 @@
     "STR_TABLE_FULL_AS_PERCENT": "滿攻速(%)",
     "STR_TABLE_FULL_AS_TIME": "滿攻速(秒)",
     "STR_TABLE_AVG_AS_PERCENT": "均攻速(%)",
+	"STR_TABLE_AVERAGE_ATKCDMG_SUM": "均攻暴和",
 
     "STR_OPTION_WINDOWS_NAME": "設定",
     "STR_OPTION_FONTSCALE": "文字放大倍率",
